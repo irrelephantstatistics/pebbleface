@@ -3,12 +3,16 @@
 static Window *s_window;
 static TextLayer *s_text_layer;
 static AppTimer *s_click_timer;
+static AppTimer *s_reset_timer;
 static bool s_click_timer_running;
  
 static void click_config_provider(void *context);
 static void select_down_handler(ClickRecognizerRef recognizer, void *context);
 static void select_up_handler(ClickRecognizerRef recognizer, void *context);
 static void long_press_handler(void *data);
+
+static void temporarily_set_text(char *text);
+static void reset_text();
 
 static void main_window_load();
 static void main_window_unload();
@@ -67,11 +71,21 @@ static void select_up_handler(ClickRecognizerRef recognizer, void *context) {
   app_timer_cancel(s_click_timer);
   s_click_timer_running = false;
  
-  text_layer_set_text(s_text_layer, "Short click");
+  temporarily_set_text("Short click");
 }
  
 static void long_press_handler(void *data) {
   s_click_timer_running = false;
  
-  text_layer_set_text(s_text_layer, "Loooong click");
+  temporarily_set_text("Loooong click");
+}
+
+static void temporarily_set_text(char *text) {
+  text_layer_set_text(s_text_layer, text);
+  app_timer_cancel(s_reset_timer);
+  s_reset_timer = app_timer_register(10000, reset_text, NULL);
+}
+
+static void reset_text(void *data) {
+  text_layer_set_text(s_text_layer, "Testing...");
 }
